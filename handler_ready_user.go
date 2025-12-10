@@ -38,9 +38,15 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, user)
+	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 }
 
 func handlerCreateUserErr(w http.ResponseWriter, r *http.Request) {
 	respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+}
+
+func (cfg *apiConfig) handlUsersGet(w http.ResponseWriter, r *http.Request, user database.User) {
+
+	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
+
 }
