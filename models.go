@@ -64,11 +64,11 @@ type FeedFollow struct {
 
 func databaseFeedFollowtoFeedFollow(feedFollow database.FeedFollow) FeedFollow {
 	return FeedFollow{
-		ID:        feedFollow.FeedID,
+		ID:        feedFollow.ID,
 		CreatedAt: feedFollow.CreatedAt,
 		UpdatedAt: feedFollow.UpdatedAt,
 		UserID:    feedFollow.UserID,
-		FeedID:    feedFollow.UserID,
+		FeedID:    feedFollow.FeedID,
 	}
 }
 

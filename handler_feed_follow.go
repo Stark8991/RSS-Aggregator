@@ -38,6 +38,7 @@ func (cfg *apiConfig) handlerFeedFollowCreate(w http.ResponseWriter, r *http.Req
 	}
 
 	fmt.Println(user.ID)
+	fmt.Println(params.FeedID)
 
 	FeedFollow, err := cfg.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
