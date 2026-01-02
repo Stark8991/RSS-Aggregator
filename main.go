@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,14 @@ type apiConfig struct {
 }
 
 func main() {
+
+	data, err := fetchFeed("https://www.wagslane.dev/index.xml")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(data)
 
 	godotenv.Load(".env")
 
@@ -70,7 +79,6 @@ func main() {
 
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerErr)
-
 	router.Mount("/v1", v1Router)
 	srv := &http.Server{
 		Handler: router,
