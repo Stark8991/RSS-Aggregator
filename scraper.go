@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"io"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Stark8991/RSSAgg/internal/database"
+	"github.com/google/uuid"
 )
 
 type RSSFeed struct {
@@ -90,24 +92,42 @@ func startScraping(db *database.Queries, concurrency int, timeBetweenRequest tim
 func scrapFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 	defer wg.Done()
 
-	_, err := db.MarkFeedFetched(context.Background(), feed.ID)
-
-	if err != nil {
-		log.Printf("Couldn't collect feed %s: %v", feed.Name, err)
-		return
-	}
-
 	feedData, err := fetchFeed(feed.Url)
-
 	if err != nil {
 		log.Printf("Couldn't collect feed %s: %v", feed.Name, err)
 		return
 	}
 
 	for _, item := range feedData.Channel.Item {
-		log.Println("Found post: ", item.Title)
+		description := sql.NullString{}
+		if item.Description != "" {
+			description.String = item.Description
+			description.Valid = true
+		}
+
+		t, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			log.Printf("Couldn't parse date %v with err %v", item.PubDate, err)
+			continue
+		}
+
+		_, err = db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			Title:       item.Title,
+			Description: description,
+			PublishedAt: t,
+			Url:         item.Link,
+			FeedID:      feed.ID,
+		})
+		if err != nil {
+			log.Printf("Failed to create post for feed %s: %v", feed.Name, err)
+		}
 	}
 
-	log.Printf("Feed %s collected, %v posts found", feed.Name, len(feedData.Channel.Item))
-
+	_, err = db.MarkFeedFetched(context.Background(), feed.ID)
+	if err != nil {
+		log.Printf("Couldn't mark feed %s as fetched: %v", feed.Name, err)
+	}
 }

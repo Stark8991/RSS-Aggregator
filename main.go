@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Stark8991/RSSAgg/internal/database"
 	"github.com/go-chi/chi"
@@ -85,6 +86,13 @@ func main() {
 	}
 
 	log.Printf("Server starting on port: %s", portString)
+
+	const collectionConcurrency = 10
+	const collectionInterval = time.Minute
+
+	go startScraping(queries, collectionConcurrency, collectionInterval)
+
+	//wagslane.dev/index.xml
 
 	err = srv.ListenAndServe()
 
